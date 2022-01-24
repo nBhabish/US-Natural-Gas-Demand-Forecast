@@ -1,3 +1,6 @@
+# GOAL : Forecast Natural Gas Demand in the United States for the next 24 months,
+# Based on the dataset that is till 2023-01-01.
+
 # LIBRARIES ----
 
 library(tidyverse)
@@ -18,6 +21,14 @@ demand_monthly_tbl <- USgas::us_monthly
 demand_monthly_tbl <- demand_monthly_tbl %>% 
   rename(total_demand = y) %>% 
   summarise_by_time(date, .by = "month", total_demand = sum(total_demand))
+
+demand_monthly_tbl %>% 
+  plot_time_series(date, total_demand,
+                   .title = "Natural Gas Demand in the United States (2000-2010)",
+                   .interactive = F,
+                   .smooth = F) +
+  labs(subtitle = "No significant outliers and variance is observed")+
+  scale_y_continuous(labels = scales::comma)
 
 # EDA ----
 
@@ -190,24 +201,84 @@ calibration_tbl %>%
   labs(subtitle = "TBATS and ETS models seem to be not performing that great when compared with other models.")+
   scale_y_continuous(labels = scales::comma)
 
+
 # Forecasting on Future Data ----
 
 ## Refitting the models ----
 
 refit_tbl <- calibration_tbl %>% 
   modeltime_refit(data_prep_tbl)
+
+refit_tbl %>% 
+  filter(.model_id == 7) %>% 
+  modeltime_forecast(new_data = forecast_tbl,
+                     actual_data = data_prep_tbl) %>% 
+  plot_modeltime_forecast(.conf_interval_show = FALSE,
+                          .interactive = F,
+                          .title = "United States Natural Gas Demand Forecast w/ ARIMA")+
+  labs(subtitle = "ARIMA(1,1,1)(2,1,1)[12]")+
+  scale_y_continuous(labels = scales::comma_format(scale = 1e-6,suffix = "M"))
   
 refit_tbl %>% 
   modeltime_forecast(new_data = forecast_tbl,
                     actual_data = data_prep_tbl) %>% 
-  plot_modeltime_forecast(.conf_interval_show = F)
+  plot_modeltime_forecast(.conf_interval_show = F,
+                          .interactive = F,
+                          .title = "United States Natural Gas Demand Forecast until January 1, 2023")+
+  labs(subtitle = "")+
+  scale_y_continuous(labels = scales::comma_format(scale = 1e-6, suffix = "M"))
 
-# It looks like Auto Arima model seems to be performing well by capturing the seasonalities and trend pretty well. 
+# It looks like Auto ARIMA model seems to be performing well by capturing the seasonality and trend pretty well. 
 
 
+# Residuals ----
+
+residuals_out_of_sample_tbl <- calibration_tbl %>% 
+  modeltime_residuals() 
+
+residuals_in_sample_tbl <- calibration_tbl %>% 
+  modeltime_residuals(training(splits)) 
+
+# Visualizing Residuals ----
+
+residuals_in_sample_tbl %>% 
+  plot_modeltime_residuals(.interactive = F,
+                           .title = "Residual Plot for In-Sample Data")+
+  labs(subtitle = "For the most part, the residuals are centered aroud 0")
+
+residuals_out_of_sample_tbl %>% 
+  plot_modeltime_residuals(.interactive = F,
+                           .title = "Residual Plot for Out-of-Sample Data")+
+  labs(subtitle = "For the most part, the residuals are centered aroud 0")
 
 
+residuals_in_sample_tbl %>% 
+  filter(.model_desc == "REGRESSION WITH ARIMA(1,1,1)(2,1,1)[12] ERRORS") %>% 
+  plot_modeltime_residuals(.interactive = F,
+                           .title = "ARIMA Residual Plot for In-Sample Data")+
+  labs(subtitle = "ARIMA(1,1,1)(2,1,1)[12] Residuals")
 
+residuals_out_of_sample_tbl %>% 
+  filter(.model_desc == "REGRESSION WITH ARIMA(1,1,1)(2,1,1)[12] ERRORS") %>% 
+  plot_modeltime_residuals(.interactive = F,
+                           .title = "ARIMA Residual Plot for Out-of-Sample Data")+
+  labs(subtitle = "For the most part, the residuals are centered aroud 0")
 
+## ARIMA RESIDUAL ACF ----
+
+residuals_out_of_sample_tbl %>% 
+  filter(.model_desc == "REGRESSION WITH ARIMA(1,1,1)(2,1,1)[12] ERRORS") %>% 
+  plot_modeltime_residuals(.type = "acf",
+                           .interactive = F)
+
+residuals_in_sample_tbl %>% 
+  filter(.model_desc == "REGRESSION WITH ARIMA(1,1,1)(2,1,1)[12] ERRORS") %>% 
+  plot_modeltime_residuals(.type = "acf",
+                           .interactive = F)
+
+residuals_in_sample_tbl %>% 
+  filter(.model_desc == "REGRESSION WITH ARIMA(1,1,1)(2,1,1)[12] ERRORS") %>% 
+  plot_modeltime_residuals(.type = "seasonality")
+  
 
 
