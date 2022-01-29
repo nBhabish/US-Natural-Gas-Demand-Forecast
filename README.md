@@ -9,7 +9,7 @@
 - [Natural Gas Demand Visualization](#natural-gas-demand-visualization)
 - [Pre-Forecast Diagnostics](#pre-forecast-diagnostics)
 - [Results](#results)
-- [Post-Forecast Diagnnostic](#post-forecast-diagnostics)
+- [Post-Forecast Diagnostics](#post-forecast-diagnostics)
 - [Further-Improvisation](#further-improvisation)
 
 
