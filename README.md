@@ -15,7 +15,7 @@
 
 # Description
 
-We are trying to predict Natural Gas Demand of the United States until 2023-01-01. The data comes from `USgas` package developed by Rami Krispin, Data Science and Engineering Manager at Apple. We trained some sequential models to generate forecast for 24 months into the future
+Our objective is to forecast the Natural Gas Demand of the United States up until January 1, 2023. The dataset utilized for this task is sourced from the USgas package, developed by Rami Krispin, who serves as the Data Science and Engineering Manager at Apple. To accomplish this, we have trained sequential models capable of generating forecasts for the next 24 months.
 
 # Models Used
 
@@ -35,38 +35,40 @@ The following plot shows what the natural gas demand has been like in the United
 
   <img src = "01_plots/00_demand_plot.png">
 
-Takeaways from the Visualization above:
-- No outliers that would throw off our forecast
-- Stationary for the most part
+Key observations from the presented visualization are as follows:
+
+- There are no outliers that would significantly impact our forecast.
+- The data appears to be mostly stationary.
+
 
 # Pre-Forecast Diagnostics
 
-- ACF Plot below allows us to see the autocorrelated lags, and from the plot below it is clear the lag 12, 24, 36 are going to be important. 
-
+- The ACF plot provided below enables us to identify the autocorrelated lags. It is evident from the plot that lag 12, 24, and 36 are expected to be significant.
+- 
 <img src = "01_plots/01_pre_forecast_diagnostics.png">
 
-- After performing pre-processing operations we decided to observe the lag and rolling lag features to see which features picked up the trend better. It does look like from the plot below rolling lad 12 and 24 did capture the trend better. 
+- Following the pre-processing procedures, we conducted an examination of lag and rolling lag features to determine which ones captured the trend more effectively. Based on the plot depicted below, it is apparent that rolling lags 12 and 24 exhibited a better representation of the underlying trend.
 
 <img src = "01_plots/02_rolling_lag_features.png">
 
 
 # Results
 
-- After preforming pre-forecast diagnostics, we then decided to split the data into training and testing set. We decided to fit the models to the training set and evaluate their performance on the testing set. 
+- Following pre-forecast diagnostics, the next step involved splitting the data into a training set and a testing set. The training set was utilized to train the models, while the testing set was used to assess their performance. By fitting the models to the training set and evaluating their performance on the testing set, we aimed to determine how well they generalize to unseen data.
 
-- After evaluating ARIMA, AUTO ARIMA, PROPHET, ETS, TBATS, STLM ETS, and STLM ARIMA, we observed that AUTO ARIMA outperformed the rest of the models on the testing set. It can also be verified from the plot below
+- After conducting evaluations on various models such as ARIMA, AUTO ARIMA, PROPHET, ETS, TBATS, STLM ETS, and STLM ARIMA, it was observed that AUTO ARIMA exhibited superior performance compared to the other models when assessed on the testing set. This conclusion is further supported by the plot presented below, which visually demonstrates the favorable performance of the AUTO ARIMA model.
 
 <img src = "01_plots/model_performance.png">
 
-- We also observed that TBATS and ETS did not really picked up the dipping patterns that well. 
-
+- Additionally, it was observed that both the TBATS and ETS models did not accurately capture the dipping patterns in the data. These models did not exhibit a satisfactory ability to identify and replicate the downward trends present in the dataset.
+  
 <img src = "01_plots/forecasting_testing_splits.png">
 
-- Since, we skipped resampling and tuning, we decided to use all the models to see how they would forecast. Before moving on to forecasting procedures, we decided to refit all the calibrated models on the `data_prep_tbl`(didn't include the dates to be forecasted), since recent timestamps are very essential for time series forecasting. 
+- As resampling and tuning were skipped in the process, a decision was made to utilize all the models to generate forecasts. Before proceeding with the forecasting procedures, it was deemed necessary to refit all the calibrated models using the `data_prep_tbl`, which excluded the dates to be forecasted. This step was taken to ensure that the models are updated with the most recent timestamps, as they play a crucial role in accurate time series forecasting.
 
-- After refitting the models, we decided to use the data separated for forecasting to forecast the natural gas demand in the United States for next 24 months. One of the ARIMA models also got updated after refitting it to the `(training + testing - forecast)` data.
+- After refitting the models using the provided data, the next step involved utilizing the separate dataset specifically designated for forecasting purposes. This dataset was used to forecast the natural gas demand in the United States for the next 24 months. It is worth noting that one of the ARIMA models was updated after being refitted to the combined training, testing, and non-forecast data, ensuring it incorporates the most recent information for improved forecasting accuracy.
 
-- Both ARIMA models forecast seemed to stand out, however we decided to stick to `ARIMA(1,1,1)(2,1,1)[12]` model that preformed great on the test set. It also seemed to capture the spikes pretty well and follow the trend while being stationary. Another reason why we thought it gave us a better forecast was because it also accounted for the drop in demand after 2020. 
+- After careful evaluation of the forecast results, it was determined that the `ARIMA(1,1,1)(2,1,1)[12]` model stood out as the most suitable choice. This particular model demonstrated excellent performance on the test set, effectively capturing spikes in demand, adhering to the overall trend, and maintaining stationarity. Additionally, it accounted for the significant drop in demand observed after 2020, further enhancing its capability to provide accurate forecasts. Considering these factors, the `ARIMA(1,1,1)(2,1,1)[12]` model was selected as the preferred model for generating forecasts.
 
 <img src = "01_plots/auto_arima_forecast.png">
 
@@ -77,7 +79,7 @@ Takeaways from the Visualization above:
 
 # Post-Forecast Diagnostics
 
-- We decided to plot in-sample and out-of-sample residuals for all the models to see if we were able to capture patterns from the data. 
+- In order to assess the ability of the models to capture patterns in the data, we plotted the in-sample and out-of-sample residuals for all the models. This analysis allowed us to examine the discrepancies between the actual values and the predictions made by the models. By observing the residuals, we could identify any remaining patterns or systematic deviations that were not accounted for by the models.
 
 <img src = "01_plots/residual_in_sample.png">
 
@@ -92,15 +94,15 @@ Takeaways from the Visualization above:
 
 <img src = "01_plots/arima_out_sample_residual.png">
 
-- It's also best advised to see if there's any autocorrelation left in our best model. So, we also decided to take a look at `ARIMA(1,1,1)(2,1,1)[12]` for any autocorrelation in the residuals to see if there's still more information that we could mine to improvise model performance.
+- To further enhance the performance of our chosen model, namely `ARIMA(1,1,1)(2,1,1)[12]`, it is prudent to investigate whether there is any remaining autocorrelation in the residuals. This examination will help determine if there is additional information that can be utilized to further refine the model's predictions. By assessing the autocorrelation in the residuals, we aim to identify any patterns or dependencies that could be leveraged to enhance the overall performance of the model.
 
 <img src = "01_plots/arima_acf.png">
 
-- We can see that there is minimal autocorrelation among the residuals in the plot above. The plot above uses out-of-sample data for acf. This indicates that we have extracted decent amount of information with our algorithms and features.
+- The provided plot demonstrates a lack of significant autocorrelation among the residuals. Notably, the plot utilizes out-of-sample data for autocorrelation analysis. This observation suggests that our algorithms and features have successfully extracted a substantial amount of valuable information.
 
 
 # Further-Improvisation
 
-- We can use machine learning models that are better at picking up seasonalities like XGBoost, or use a combination of PROPHET and XGBoost since PROPHET is great at picking up trends whereas XGBoost is great at picking up patterns. 
+- For improved detection of seasonal patterns, we can leverage machine learning models such as XGBoost, which exhibit enhanced capability in capturing such trends. Alternatively, a combination of PROPHET and XGBoost can be employed, as PROPHET excels at identifying overall trends, while XGBoost is proficient in detecting intricate patterns. By leveraging the strengths of these models, we can enhance the accuracy and effectiveness of our analyses.
 
 - The only downside with using AUTO ARIMA or ARIMA models are that they only pick up single seasonality, so if we wanted to model complex seasonalities/ multiple seasonalities ARIMA might not be the best model for us. 
